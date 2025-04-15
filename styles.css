@@ -583,7 +583,7 @@ body {
 .footer-content {
     background-color: var(--primary-color);
     color: white;
-    padding: 2rem 1%;
+    padding: 1rem 1%;
     text-align: center;
     position: fixed;
     bottom: 0;
@@ -606,6 +606,26 @@ body {
 .social-links a:hover {
     color: var(--secondary-color);
 }
+
+.social-icons {
+    margin-bottom: 10px;
+  }
+  
+  .social-icons a {
+    color: white;
+    margin: 0 10px;
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .social-icons a:hover {
+    color: #ff4d4d;
+  }
+  
+  .heart {
+    color: red;
+  }
 
 /* Kerala Wave Pattern */
 .kerala-wave {
