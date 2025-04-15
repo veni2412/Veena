@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Analyzer - Veena's Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .analyzer-container {
+            padding: 8rem 5% 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .text-input-container {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .text-input.warning {
+            border-color: #ff4444;
+        }
+
+        .word-count-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .word-count {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .word-count.warning {
+            color: #ff4444;
+        }
+
+        .warning-message {
+            display: none;
+            background-color: #fff3f3;
+            color: #ff4444;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #ff4444;
+        }
+
+        .warning-message.show {
+            display: block;
+        }
+
+        .analyze-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .analyze-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .analyze-btn.active:hover {
+            background-color: var(--primary-color);
+        }
+
+        .results-container {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+            margin: 0 -5%;
+            padding: 1rem 5%;
+        }
+
+        .result-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 250px;
+            flex: 1;
+        }
+
+        .result-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+
+        .stat-item:hover {
+            background: #e9e9e9;
+        }
+
+        @media (max-width: 1200px) {
+            .results-container {
+                flex-wrap: wrap;
+            }
+            
+            .result-card {
+                min-width: calc(50% - 0.5rem);
+                flex: 1 1 calc(50% - 0.5rem);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .result-card {
+                min-width: 100%;
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-code"></i>
+            <span>Veena</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="skills.html">Skills</a>
+            <a href="contact.html">Contact</a>
+            <a href="analyzer.html" class="active">Analyzer</a>
+        </div>
+    </nav>
+
+    <div class="analyzer-container">
+        <div class="page-header">
+            <h1>Text Analyzer</h1>
+            <div class="kerala-border"></div>
+        </div>
+
+        <div class="text-input-container">
+            <textarea class="text-input" placeholder="Enter your text here (minimum 10,000 words)..."></textarea>
+            <div class="word-count-container">
+                <div class="word-count">Words: 0 / 10,000</div>
+                <div class="warning-message">Please enter at least 10,000 words to analyze the text.</div>
+            </div>
+            <button class="analyze-btn">Analyze Text</button>
+        </div>
+
+        <div class="results-container">
+            <div class="result-card">
+                <h3>Basic Stats</h3>
+                <div id="basic-stats"></div>
+            </div>
+            <div class="result-card">
+                <h3>Pronouns</h3>
+                <div id="pronouns-stats"></div>
+            </div>
+            <div class="result-card">
+                <h3>Prepositions</h3>
+                <div id="prepositions-stats"></div>
+            </div>
+            <div class="result-card">
+                <h3>Indefinite Articles</h3>
+                <div id="articles-stats"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lists of words for categorization
+        const pronouns = ['i', 'me', 'my', 'mine', 'myself', 'you', 'your', 'yours', 'yourself', 
+            'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 
+            'it', 'its', 'itself', 'we', 'us', 'our', 'ours', 'ourselves', 
+            'they', 'them', 'their', 'theirs', 'themselves'];
+
+        const prepositions = ['about', 'above', 'across', 'after', 'against', 'along', 'among', 
+            'around', 'at', 'before', 'behind', 'below', 'beneath', 'beside', 
+            'between', 'beyond', 'by', 'down', 'during', 'except', 'for', 
+            'from', 'in', 'inside', 'into', 'near', 'of', 'off', 'on', 
+            'out', 'outside', 'over', 'through', 'to', 'toward', 'under', 
+            'up', 'with', 'within', 'without'];
+
+        const indefiniteArticles = ['a', 'an'];
+
+        function countWords(text) {
+            return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function updateWordCount(text) {
+            const wordCount = countWords(text);
+            const wordCountElement = document.querySelector('.word-count');
+            const warningMessage = document.querySelector('.warning-message');
+            const analyzeBtn = document.querySelector('.analyze-btn');
+            const textInput = document.querySelector('.text-input');
+            
+            wordCountElement.textContent = `Words: ${wordCount.toLocaleString()} / 10,000`;
+            
+            if (wordCount < 10000) {
+                wordCountElement.classList.add('warning');
+                warningMessage.classList.add('show');
+                textInput.classList.add('warning');
+                analyzeBtn.classList.remove('active');
+            } else {
+                wordCountElement.classList.remove('warning');
+                warningMessage.classList.remove('show');
+                textInput.classList.remove('warning');
+                analyzeBtn.classList.add('active');
+            }
+        }
+
+        function countBasicStats(text) {
+            return {
+                letters: (text.match(/[a-zA-Z]/g) || []).length,
+                words: text.trim().split(/\s+/).filter(word => word.length > 0).length,
+                spaces: (text.match(/\s/g) || []).length,
+                newlines: (text.match(/\n/g) || []).length,
+                specialSymbols: (text.match(/[^a-zA-Z0-9\s]/g) || []).length
+            };
+        }
+
+        function countWordTypes(text) {
+            const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+            const counts = {
+                pronouns: {},
+                prepositions: {},
+                articles: {}
+            };
+
+            words.forEach(word => {
+                if (pronouns.includes(word)) {
+                    counts.pronouns[word] = (counts.pronouns[word] || 0) + 1;
+                }
+                if (prepositions.includes(word)) {
+                    counts.prepositions[word] = (counts.prepositions[word] || 0) + 1;
+                }
+                if (indefiniteArticles.includes(word)) {
+                    counts.articles[word] = (counts.articles[word] || 0) + 1;
+                }
+            });
+
+            return counts;
+        }
+
+        function displayStats(stats, counts) {
+            // Display basic stats
+            const basicStatsHtml = Object.entries(stats)
+                .map(([key, value]) => `
+                    <div class="stat-item">
+                        <span>${key.charAt(0).toUpperCase() + key.slice(1)}:</span>
+                        <span>${value}</span>
+                    </div>
+                `).join('');
+            document.getElementById('basic-stats').innerHTML = basicStatsHtml;
+
+            // Display pronouns
+            const pronounsHtml = Object.entries(counts.pronouns)
+                .map(([word, count]) => `
+                    <div class="stat-item">
+                        <span>${word}:</span>
+                        <span>${count}</span>
+                    </div>
+                `).join('');
+            document.getElementById('pronouns-stats').innerHTML = pronounsHtml || '<div class="stat-item">No pronouns found</div>';
+
+            // Display prepositions
+            const prepositionsHtml = Object.entries(counts.prepositions)
+                .map(([word, count]) => `
+                    <div class="stat-item">
+                        <span>${word}:</span>
+                        <span>${count}</span>
+                    </div>
+                `).join('');
+            document.getElementById('prepositions-stats').innerHTML = prepositionsHtml || '<div class="stat-item">No prepositions found</div>';
+
+            // Display articles
+            const articlesHtml = Object.entries(counts.articles)
+                .map(([word, count]) => `
+                    <div class="stat-item">
+                        <span>${word}:</span>
+                        <span>${count}</span>
+                    </div>
+                `).join('');
+            document.getElementById('articles-stats').innerHTML = articlesHtml || '<div class="stat-item">No indefinite articles found</div>';
+        }
+
+        document.querySelector('.text-input').addEventListener('input', (e) => {
+            updateWordCount(e.target.value);
+        });
+
+        document.querySelector('.analyze-btn').addEventListener('click', () => {
+            const text = document.querySelector('.text-input').value;
+            if (countWords(text) >= 10000) {
+                const stats = countBasicStats(text);
+                const counts = countWordTypes(text);
+                displayStats(stats, counts);
+            }
+        });
+    </script>
+</body>
+</html> 

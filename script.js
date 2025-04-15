@@ -1,15 +1,54 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Function to log event details
+    function logEvent(event, type) {
+        const timestamp = new Date().toISOString();
+        const eventType = type || event.type;
+        const targetType = event.target.tagName.toLowerCase();
+        const targetClass = event.target.className || 'no-class';
+        
+        console.log({
+            timestamp,
+            eventType,
+            targetType,
+            targetClass,
+            eventDetails: {
+                id: event.target.id || 'no-id',
+                text: event.target.textContent?.trim() || 'no-text'
+            }
+        });
+    }
+
     // Mobile menu functionality
     const menuBtn = document.querySelector('.menu-btn');
     const navLinks = document.querySelector('.nav-links');
     
-    menuBtn.addEventListener('click', () => {
+    menuBtn.addEventListener('click', (e) => {
+        logEvent(e, 'click');
         navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    // Tab switching functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            logEvent(e, 'click');
+            // Remove active class from all buttons and contents
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked button and corresponding content
+            btn.classList.add('active');
+            const tabId = btn.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
     });
 
     // Smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
+            logEvent(e, 'click');
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -30,7 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (filterBtns.length > 0) {
         filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                logEvent(e, 'click');
                 // Remove active class from all buttons
                 filterBtns.forEach(b => b.classList.remove('active'));
                 // Add active class to clicked button
@@ -53,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
         contactForm.addEventListener('submit', (e) => {
+            logEvent(e, 'submit');
             e.preventDefault();
             
             // Get form data
@@ -68,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Add fade-in animation to elements as they appear in viewport
+    // Add view event logging for elements in viewport
     const observerOptions = {
         threshold: 0.1
     };
@@ -76,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
+                logEvent({ target: entry.target }, 'view');
                 entry.target.classList.add('fade-in');
                 observer.unobserve(entry.target);
             }
@@ -84,8 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Observe elements that should fade in
     const elementsToAnimate = document.querySelectorAll(
-        '.skill-card, .about-content, .about-image, .project-card, ' +
-        '.certification-card, .contact-method, .social-link'
+        '.skill-item, .achievement-item, .timeline-item, .about-text, .profile-photo'
     );
 
     elementsToAnimate.forEach(el => {
@@ -122,6 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
             hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
         });
     }
+
+    // Carousel functionality
+    initCarousel();
 });
 
 // Greeting animations
@@ -155,83 +199,48 @@ updateGreeting();
 // Change greeting every 5 seconds
 setInterval(updateGreeting, 5000);
 
-  // Utility function to get a readable description of the element
-  function getElementType(el) {
-    if (el.tagName === "IMG") return "image";
-    if (el.tagName === "P" || el.tagName === "SPAN") return "text";
-    if (el.tagName === "BUTTON") return "button";
-    if (el.tagName === "A" && el.href.endsWith(".pdf")) return "CV (PDF link)";
-    if (el.tagName === "A") return "hyperlink";
-    if (el.tagName === "SELECT") return "drop-down";
-    if (el.tagName === "INPUT") return "input field";
-    return el.tagName.toLowerCase();
-  }
+// Carousel functionality
+function initCarousel() {
+    const images = [
+        'images/Veena-2.jpeg',  // Your profile photo
+        'images/im1.png',       // Dubai Miracle Garden
+        'images/im2.png',       // Kerala Traditional Building
+        'images/im3.png',       // Kerala Landscape
+        'images/im4.png',       // Burj Al Arab
+        'images/im5.png',       // Dubai Museum
+        'images/im6.png'        // Burj Khalifa
+    ];
 
-  // Capture click events
-  document.addEventListener("click", function (e) {
-    const timestamp = new Date().toLocaleString();
-    const elementType = getElementType(e.target);
-    console.log(`${timestamp}, click, ${elementType}`);
-  });
+    const carouselContainer = document.querySelector('.about-image');
+    if (!carouselContainer) return;
 
-  // Capture initial page views
-  window.addEventListener("DOMContentLoaded", function () {
-    const timestamp = new Date().toLocaleString();
-    console.log(`${timestamp}, view, entire page loaded`);
+    // Clear existing content
+    carouselContainer.innerHTML = '';
 
-    // Optionally log each key section that was loaded
-    document.querySelectorAll("section, img, p, a, button, select, input").forEach((el) => {
-      const elementType = getElementType(el);
-      const timeNow = new Date().toLocaleString();
-      console.log(`${timeNow}, view, ${elementType}`);
+    // Create image elements
+    images.forEach((src, index) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.classList.add('carousel-image');
+        img.alt = `Image ${index + 1}`;
+        if (index === 0) img.classList.add('active');
+        carouselContainer.appendChild(img);
     });
-  });
 
-  function analyzeText() {
-    const text = document.getElementById("textInput").value;
+    const carouselImages = document.querySelectorAll('.carousel-image');
+    let currentIndex = 0;
 
-    const outputDiv = document.getElementById("output");
-    outputDiv.innerHTML = ""; // Clear old output
-
-    const letters = (text.match(/[a-zA-Z]/g) || []).length;
-    const words = (text.trim().match(/\b\w+\b/g) || []).length;
-    const spaces = (text.match(/ /g) || []).length;
-    const newlines = (text.match(/\n/g) || []).length;
-    const specialSymbols = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
-
-    // Helper for counting words from a set
-    function countWordsFromList(tokens, list) {
-      const counts = {};
-      list.forEach((item) => counts[item] = 0);
-      tokens.forEach((word) => {
-        const lower = word.toLowerCase();
-        if (counts.hasOwnProperty(lower)) {
-          counts[lower]++;
-        }
-      });
-      return counts;
+    function showNextImage() {
+        // Fade out current image
+        carouselImages[currentIndex].classList.remove('active');
+        
+        // Move to next image
+        currentIndex = (currentIndex + 1) % carouselImages.length;
+        
+        // Fade in new image
+        carouselImages[currentIndex].classList.add('active');
     }
 
-    const tokens = text.split(/\s+/);
-
-    // Common pronouns, prepositions, and indefinite articles
-    const pronouns = ["i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them", "my", "your", "his", "its", "our", "their", "mine", "yours", "hers", "ours", "theirs"];
-    const prepositions = ["in", "on", "at", "by", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "of", "off", "for", "under", "over"];
-    const articles = ["a", "an"];
-
-    const pronounCounts = countWordsFromList(tokens, pronouns);
-    const prepositionCounts = countWordsFromList(tokens, prepositions);
-    const articleCounts = countWordsFromList(tokens, articles);
-
-    // Create output HTML
-    outputDiv.innerHTML += `<h3>Basic Stats:</h3>
-      <p>Letters: ${letters}</p>
-      <p>Words: ${words}</p>
-      <p>Spaces: ${spaces}</p>
-      <p>Newlines: ${newlines}</p>
-      <p>Special Symbols: ${specialSymbols}</p>`;
-
-    outputDiv.innerHTML += `<h3>Pronoun Counts:</h3><pre>${JSON.stringify(pronounCounts, null, 2)}</pre>`;
-    outputDiv.innerHTML += `<h3>Preposition Counts:</h3><pre>${JSON.stringify(prepositionCounts, null, 2)}</pre>`;
-    outputDiv.innerHTML += `<h3>Indefinite Article Counts:</h3><pre>${JSON.stringify(articleCounts, null, 2)}</pre>`;
-  }
+    // Start the carousel
+    setInterval(showNextImage, 5000); // Change image every 5 seconds
+}
