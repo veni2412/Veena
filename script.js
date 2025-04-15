@@ -154,3 +154,84 @@ updateGreeting();
 
 // Change greeting every 5 seconds
 setInterval(updateGreeting, 5000);
+
+  // Utility function to get a readable description of the element
+  function getElementType(el) {
+    if (el.tagName === "IMG") return "image";
+    if (el.tagName === "P" || el.tagName === "SPAN") return "text";
+    if (el.tagName === "BUTTON") return "button";
+    if (el.tagName === "A" && el.href.endsWith(".pdf")) return "CV (PDF link)";
+    if (el.tagName === "A") return "hyperlink";
+    if (el.tagName === "SELECT") return "drop-down";
+    if (el.tagName === "INPUT") return "input field";
+    return el.tagName.toLowerCase();
+  }
+
+  // Capture click events
+  document.addEventListener("click", function (e) {
+    const timestamp = new Date().toLocaleString();
+    const elementType = getElementType(e.target);
+    console.log(`${timestamp}, click, ${elementType}`);
+  });
+
+  // Capture initial page views
+  window.addEventListener("DOMContentLoaded", function () {
+    const timestamp = new Date().toLocaleString();
+    console.log(`${timestamp}, view, entire page loaded`);
+
+    // Optionally log each key section that was loaded
+    document.querySelectorAll("section, img, p, a, button, select, input").forEach((el) => {
+      const elementType = getElementType(el);
+      const timeNow = new Date().toLocaleString();
+      console.log(`${timeNow}, view, ${elementType}`);
+    });
+  });
+
+  function analyzeText() {
+    const text = document.getElementById("textInput").value;
+
+    const outputDiv = document.getElementById("output");
+    outputDiv.innerHTML = ""; // Clear old output
+
+    const letters = (text.match(/[a-zA-Z]/g) || []).length;
+    const words = (text.trim().match(/\b\w+\b/g) || []).length;
+    const spaces = (text.match(/ /g) || []).length;
+    const newlines = (text.match(/\n/g) || []).length;
+    const specialSymbols = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
+
+    // Helper for counting words from a set
+    function countWordsFromList(tokens, list) {
+      const counts = {};
+      list.forEach((item) => counts[item] = 0);
+      tokens.forEach((word) => {
+        const lower = word.toLowerCase();
+        if (counts.hasOwnProperty(lower)) {
+          counts[lower]++;
+        }
+      });
+      return counts;
+    }
+
+    const tokens = text.split(/\s+/);
+
+    // Common pronouns, prepositions, and indefinite articles
+    const pronouns = ["i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them", "my", "your", "his", "its", "our", "their", "mine", "yours", "hers", "ours", "theirs"];
+    const prepositions = ["in", "on", "at", "by", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "of", "off", "for", "under", "over"];
+    const articles = ["a", "an"];
+
+    const pronounCounts = countWordsFromList(tokens, pronouns);
+    const prepositionCounts = countWordsFromList(tokens, prepositions);
+    const articleCounts = countWordsFromList(tokens, articles);
+
+    // Create output HTML
+    outputDiv.innerHTML += `<h3>Basic Stats:</h3>
+      <p>Letters: ${letters}</p>
+      <p>Words: ${words}</p>
+      <p>Spaces: ${spaces}</p>
+      <p>Newlines: ${newlines}</p>
+      <p>Special Symbols: ${specialSymbols}</p>`;
+
+    outputDiv.innerHTML += `<h3>Pronoun Counts:</h3><pre>${JSON.stringify(pronounCounts, null, 2)}</pre>`;
+    outputDiv.innerHTML += `<h3>Preposition Counts:</h3><pre>${JSON.stringify(prepositionCounts, null, 2)}</pre>`;
+    outputDiv.innerHTML += `<h3>Indefinite Article Counts:</h3><pre>${JSON.stringify(articleCounts, null, 2)}</pre>`;
+  }
