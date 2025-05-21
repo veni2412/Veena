@@ -1,39 +1,65 @@
+/**
+ * Main initialization function that runs when DOM is loaded
+ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Function to log event details
-    function logEvent(event, type) {
-        const timestamp = new Date().toISOString();
-        const eventType = type || event.type;
-        const targetType = event.target.tagName.toLowerCase();
-        const targetClass = event.target.className || 'no-class';
-        
-        console.log({
-            timestamp,
-            eventType,
-            targetType,
-            targetClass,
-            eventDetails: {
-                id: event.target.id || 'no-id',
-                text: event.target.textContent?.trim() || 'no-text'
-            }
-        });
-    }
+    initMobileMenu();
+    initTabSwitching();
+    initSmoothScrolling();
+    initAnimations();
+    initParallaxEffect();
+    setupGreetingAnimation();
+    initCarousel();
+});
 
-    // Mobile menu functionality
+/**
+ * Utility function to log events with detailed information
+ */
+function logEvent(event, type) {
+    const timestamp = new Date().toISOString();
+    const eventType = type || event.type;
+    const targetType = event.target.tagName.toLowerCase();
+    const targetClass = event.target.className || 'no-class';
+    
+    console.log({
+        timestamp,
+        eventType,
+        targetType,
+        targetClass,
+        eventDetails: {
+            id: event.target.id || 'no-id',
+            text: event.target.textContent?.trim() || 'no-text'
+        }
+    });
+}
+
+/**
+ * Initialize mobile menu toggle functionality
+ */
+function initMobileMenu() {
     const menuBtn = document.querySelector('.menu-btn');
     const navLinks = document.querySelector('.nav-links');
+    
+    if (!menuBtn || !navLinks) return;
     
     menuBtn.addEventListener('click', (e) => {
         logEvent(e, 'click');
         navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
     });
+}
 
-    // Tab switching functionality
+/**
+ * Initialize tab switching functionality for the about section
+ */
+function initTabSwitching() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-
+    
+    if (tabBtns.length === 0) return;
+    
     tabBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             logEvent(e, 'click');
+            
             // Remove active class from all buttons and contents
             tabBtns.forEach(b => b.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
@@ -41,99 +67,68 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add active class to clicked button and corresponding content
             btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
         });
     });
+}
 
-    // Smooth scrolling for navigation links
+/**
+ * Initialize smooth scrolling for anchor links
+ */
+function initSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
+        anchor.addEventListener('click', function(e) {
             logEvent(e, 'click');
             e.preventDefault();
+            
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
                 target.scrollIntoView({
                     behavior: 'smooth'
                 });
-                // Close mobile menu if open
+                
+                // Close mobile menu if open on small screens
                 if (window.innerWidth <= 768) {
-                    navLinks.style.display = 'none';
+                    const navLinks = document.querySelector('.nav-links');
+                    if (navLinks) {
+                        navLinks.style.display = 'none';
+                    }
                 }
             }
         });
     });
+}
 
-    // Project filters functionality
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const projectCards = document.querySelectorAll('.project-card');
-
-    if (filterBtns.length > 0) {
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                logEvent(e, 'click');
-                // Remove active class from all buttons
-                filterBtns.forEach(b => b.classList.remove('active'));
-                // Add active class to clicked button
-                btn.classList.add('active');
-                
-                const filter = btn.getAttribute('data-filter');
-                
-                projectCards.forEach(card => {
-                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        });
-    }
-
-    // Contact form handling
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            logEvent(e, 'submit');
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(contactForm);
-            const data = Object.fromEntries(formData);
-            
-            // Here you would typically send the data to a server
-            console.log('Form submitted:', data);
-            
-            // Show success message
-            alert('Thank you for your message! I will get back to you soon.');
-            contactForm.reset();
-        });
-    }
-
-    // Add view event logging for elements in viewport
-    const observerOptions = {
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
+/**
+ * Initialize animations with Intersection Observer
+ */
+function initAnimations() {
+    const observerOptions = { threshold: 0.1 };
+    
+    // Observer for fade-in animations
+    const fadeInObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 logEvent({ target: entry.target }, 'view');
                 entry.target.classList.add('fade-in');
-                observer.unobserve(entry.target);
+                fadeInObserver.unobserve(entry.target);
             }
         });
     }, observerOptions);
-
+    
     // Observe elements that should fade in
     const elementsToAnimate = document.querySelectorAll(
         '.skill-item, .achievement-item, .timeline-item, .about-text, .profile-photo'
     );
-
+    
     elementsToAnimate.forEach(el => {
         el.style.opacity = '0';
-        observer.observe(el);
+        fadeInObserver.observe(el);
     });
-
+    
     // Skill bars animation
     const skillBars = document.querySelectorAll('.skill-level');
     if (skillBars.length > 0) {
@@ -149,37 +144,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }, observerOptions);
-
+        
         skillBars.forEach(bar => {
             skillObserver.observe(bar);
         });
     }
+}
 
-    // Parallax effect for hero section
+/**
+ * Initialize parallax effect for hero section
+ */
+function initParallaxEffect() {
     const hero = document.querySelector('.hero');
-    if (hero) {
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
-        });
-    }
+    if (!hero) return;
+    
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
+    });
+}
 
-    // Carousel functionality
-    initCarousel();
-});
-
-// Greeting animations
+/**
+ * Setup rotating greeting animations
+ */
 const greetings = [
     { text: "Veena", language: "English" },
     { text: "വീണ", language: "Malayalam" },
-    { text: "वीना", language: "Veena" },
+    { text: "वीना", language: "Hindi" },
     { text: "فينا", language: "Arabic" }
 ];
 
 let currentGreetingIndex = 0;
-const greetingElement = document.getElementById('greeting');
+let greetingElement;
+
+function setupGreetingAnimation() {
+    greetingElement = document.getElementById('greeting');
+    if (!greetingElement) return;
+    
+    updateGreeting();
+    setInterval(updateGreeting, 5000);
+}
 
 function updateGreeting() {
+    if (!greetingElement) return;
+    
     const greeting = greetings[currentGreetingIndex];
     greetingElement.style.opacity = "0";
     greetingElement.style.transform = "translateY(20px)";
@@ -189,20 +197,16 @@ function updateGreeting() {
         greetingElement.style.opacity = "1";
         greetingElement.style.transform = "translateY(0)";
     }, 500);
-
+    
     currentGreetingIndex = (currentGreetingIndex + 1) % greetings.length;
 }
 
-// Initial greeting
-updateGreeting();
-
-// Change greeting every 5 seconds
-setInterval(updateGreeting, 5000);
-
-// Carousel functionality
+/**
+ * Initialize image carousel
+ */
 function initCarousel() {
     const images = [
-        'images/Veena-2.jpeg',  // Your profile photo
+        'images/Veena-2.jpeg',  // Profile photo
         'images/im1.png',       // Dubai Miracle Garden
         'images/im2.png',       // Kerala Traditional Building
         'images/im3.png',       // Kerala Landscape
@@ -210,13 +214,13 @@ function initCarousel() {
         'images/im5.png',       // Dubai Museum
         'images/im6.png'        // Burj Khalifa
     ];
-
+    
     const carouselContainer = document.querySelector('.about-image');
     if (!carouselContainer) return;
-
+    
     // Clear existing content
     carouselContainer.innerHTML = '';
-
+    
     // Create image elements
     images.forEach((src, index) => {
         const img = document.createElement('img');
@@ -226,10 +230,10 @@ function initCarousel() {
         if (index === 0) img.classList.add('active');
         carouselContainer.appendChild(img);
     });
-
+    
     const carouselImages = document.querySelectorAll('.carousel-image');
     let currentIndex = 0;
-
+    
     function showNextImage() {
         // Fade out current image
         carouselImages[currentIndex].classList.remove('active');
@@ -240,7 +244,7 @@ function initCarousel() {
         // Fade in new image
         carouselImages[currentIndex].classList.add('active');
     }
-
+    
     // Start the carousel
     setInterval(showNextImage, 5000); // Change image every 5 seconds
 }
